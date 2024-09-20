@@ -1,12 +1,24 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-
+import React, { useState, useEffect } from 'react';
+import { View } from 'react-native';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import SplashScreen from '@/components/Splash';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false); 
+    }, 3000);
+  }, []);
+
+  if (isLoading) {
+    return <SplashScreen />;  
+  }
 
   return (
     <Tabs
