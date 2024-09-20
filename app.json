@@ -19,7 +19,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -29,6 +34,13 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
+        }
+      ],
+      [
         "expo-contacts",
         {
           "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."
@@ -37,6 +49,17 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "45817b8c-8c28-4c71-a832-01b76ab9b113"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/45817b8c-8c28-4c71-a832-01b76ab9b113"
     }
   }
 }

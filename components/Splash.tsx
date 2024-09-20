@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
@@ -16,6 +16,9 @@ export default function Splash() {
     <View style={styles.container}>
       <Image source={require('@/assets/images/contact.png')} style={styles.logo} />
       <Text style={styles.title}>Contact Manager</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#40BF56" />
+      </View>
     </View>
   );
 }
@@ -35,6 +38,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'green',
+    color: '#40BF56',
+  },
+  loadingContainer: {
+    marginTop: 30,
   },
 });
