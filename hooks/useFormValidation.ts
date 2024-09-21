@@ -75,9 +75,9 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
     setIsLoading(true);
     setTimeout(() => {
       onSubmit({ id: contact?.id, name, phone, email, photo });
-      setIsLoading(false);
       onClose();
-    }, 800);
+      setIsLoading(false);
+    }, 600);
   };
 
   return {

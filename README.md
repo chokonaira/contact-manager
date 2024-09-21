@@ -1,50 +1,68 @@
-# Welcome to your Expo app 👋
+# Contact Manager App 📱
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile application built with **React Native** and **TypeScript**. This app allows users to manage their contacts easily with features like syncing mobile contacts, adding contacts manually, uploading profile photos, and clearing all contacts.
 
-## Get started
+## App Features:
+- **Sync Contacts**: Sync your phone's contacts and manage them within the app.
+- **Add Contacts Manually**: Easily add new contacts by entering their details.
+- **Edit Contacts**: Update contact information and upload profile images.
+- **Delete Contacts**: Remove individual contacts or clear the entire contact list.
+- **Profile Picture Upload**: Add and update contact profile pictures.
+  
+## How to Set Up and Run the Project
 
-1. Install dependencies
+### 1. Clone the Project
+To get started with the project locally, clone the repository:
 
-   ```bash
-   npm install
-   ```
+\`\`\`bash
+git clone
+cd contact-manager
+\`\`\`
 
-2. Start the app
+### 2. Install Dependencies
+Make sure you have \`npm\` installed. Then, run the following command to install all necessary dependencies:
 
-   ```bash
-    npx expo start
-   ```
+\`\`\`bash
+npm install
+\`\`\`
 
-In the output, you'll find options to open the app in a
+### 3. Start the Development Server
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **For iOS**:
+  If you're running on macOS, you can start the iOS simulator:
+  \`\`\`bash
+  npx expo start --ios
+  \`\`\`
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **For Android**:
+  Start the Android emulator or connect an Android device:
+  \`\`\`bash
+  npx expo start --android
+  \`\`\`
 
-## Get a fresh project
+- **Expo Go (For quick preview)**:
+  Download **Expo Go** from the App Store or Play Store, then run the development server and scan the QR code:
+  \`\`\`bash
+  npx expo start
+  \`\`\`
 
-When you're ready, run:
+### 4. Run Test suites
+\`\`\`bash
+npm test
+\`\`\`
 
-```bash
-npm run reset-project
-```
+## Running the Already Published App
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+You can also run the already published build using **Expo Go** by simply downloading the Expo Go app and clicking the link below:
 
-## Learn more
+[Run the App](https://expo.dev/preview/update?message=initial&updateRuntimeVersion=1.0.0&slug=exp&projectId=45817b8c-8c28-4c71-a832-01b76ab9b113&group=db77c6a2)
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Project Details:
+- **Framework**: React Native
+- **Language**: TypeScript
+- **Vitest**: Testing package
+- **Expo**: For development and building
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
