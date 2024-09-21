@@ -28,7 +28,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     phone,
     email,
     nameError,
-    phoneError,
     emailError,
     isLoading,
     handleNameChange,
@@ -79,7 +78,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         <View style={styles.modalContent}>
           {isEditing && (
             <TouchableOpacity onPress={handleDelete} style={styles.deleteIconTopLeft}>
-              <Ionicons name="trash-outline" size={25} color="gray" />
+              <Ionicons name="trash-outline" size={24} color="gray" />
             </TouchableOpacity>
           )}
 
@@ -116,7 +115,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             value={phone}
             onChangeText={handlePhoneChange}
             keyboardType="phone-pad"
-            errorMessage={phoneError}
           />
 
           <Input
@@ -154,6 +152,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     position: 'relative',
+    marginBottom: 40
   },
   cancelIcon: {
     position: 'absolute',

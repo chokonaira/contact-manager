@@ -15,7 +15,6 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
   const [email, setEmail] = useState<string>("");
   const [photo, setPhoto] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string>("");
-  const [phoneError, setPhoneError] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -41,36 +40,22 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
     setEmail("");
     setPhoto(null);
     setNameError("");
-    setPhoneError("");
     setEmailError("");
   };
 
   const handleNameChange = (text: string) => {
     setName(text);
-    if (!text.trim()) {
-      setNameError("Name is required");
-    } else {
-      setNameError("");
-    }
+    if (text.trim()) setNameError("");
   };
 
   const handlePhoneChange = (text: string) => {
-    const cleanedPhone = text.replace(/[^0-9]/g, "");
+    const cleanedPhone = text.replace(/[^0-9+]/g, "");
     setPhone(cleanedPhone);
-    if (!cleanedPhone.trim()) {
-      setPhoneError("Phone number is required");
-    } else {
-      setPhoneError("");
-    }
   };
 
   const handleEmailChange = (text: string) => {
     setEmail(text);
-    if (text && !validateEmail(text)) {
-      setEmailError("Invalid email format");
-    } else {
-      setEmailError("");
-    }
+    if (text && validateEmail(text)) setEmailError("");
   };
 
   const handleSubmit = (
@@ -101,7 +86,6 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
     email,
     photo,
     nameError,
-    phoneError,
     emailError,
     isLoading,
     setPhoto,
