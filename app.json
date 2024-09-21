@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSContactsUsageDescription": "This app requires access to your contacts to sync and display them."
-      }
+      },
+      "bundleIdentifier": "com.henry.contactmanager"
     },
     "android": {
       "permissions": [
