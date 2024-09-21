@@ -15,7 +15,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
-import ContactFormModal from '@/components/ContactFormModal';
+import ContactFormModal from '@/components/FormModal';
 import { debounce } from 'lodash';
 
 interface Contact {

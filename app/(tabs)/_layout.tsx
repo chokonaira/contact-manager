@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
