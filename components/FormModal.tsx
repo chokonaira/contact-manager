@@ -37,11 +37,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     handleSubmit,
   } = useFormValidation(contact, isEditing);
 
-  // Initialize the image picker with the contact's existing photo, or null for new contact
   const { photo, pickImage, resetImage, setInitialPhoto } = useImagePicker(contact?.photo || null);
 
   useEffect(() => {
-    // Whenever the contact changes (new contact or editing existing), set the initial photo
     setInitialPhoto(contact?.photo || null);
   }, [contact]);
 
@@ -70,7 +68,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     handleSubmit((savedContact: Contact) => {
       onSubmit({
         ...savedContact,
-        photo,  // Ensure the photo is saved with the contact data
+        photo,
       });
     }, onClose); 
   };
@@ -81,7 +79,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         <View style={styles.modalContent}>
           {isEditing && (
             <TouchableOpacity onPress={handleDelete} style={styles.deleteIconTopLeft}>
-              <Ionicons name="trash-outline" size={30} color="gray" />
+              <Ionicons name="trash-outline" size={25} color="gray" />
             </TouchableOpacity>
           )}
 

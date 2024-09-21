@@ -1,31 +1,35 @@
 import { Tabs } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import SplashScreen from '@/components/Splash';
+import * as SplashScreen from 'expo-splash-screen';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 4000);
+  React.useEffect(() => {
+    const prepareApp = async () => {
+      try {
+        await SplashScreen.preventAutoHideAsync();
+        setTimeout(() => {
+          SplashScreen.hideAsync();
+        }, 3000); 
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    prepareApp();
   }, []);
-
-  if (isLoading) {
-    return <SplashScreen />;
-  }
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-      }}
-    >
+      }}>
       <Tabs.Screen
         name="index"
         options={{
