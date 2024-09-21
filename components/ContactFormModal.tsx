@@ -19,9 +19,17 @@ interface ContactFormModalProps {
   onSubmit: (contact: Contact) => void;
   contact?: Contact | null;
   isEditing?: boolean;
+  onDelete?: (contactId: string) => void;
 }
 
-const ContactFormModal: React.FC<ContactFormModalProps> = ({ isVisible, onClose, onSubmit, contact, isEditing = false }) => {
+const ContactFormModal: React.FC<ContactFormModalProps> = ({
+  isVisible,
+  onClose,
+  onSubmit,
+  contact,
+  isEditing = false,
+  onDelete,
+}) => {
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -118,21 +126,47 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ isVisible, onClose,
     }, 800);
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Contact',
+      'Are you sure you want to delete this contact?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            if (contact && contact.id && onDelete) {
+              onDelete(contact.id);
+              onClose();
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <Modal visible={isVisible} animationType="slide" transparent>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
+          {isEditing && (
+            <TouchableOpacity onPress={handleDelete} style={styles.deleteIconTopLeft}>
+              <Ionicons name="trash-outline" size={30} color="gray" />
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity onPress={onClose} style={styles.cancelIcon}>
             <Ionicons name="close-circle-outline" size={30} color="gray" />
           </TouchableOpacity>
 
-          {/* Profile Image with Edit Icon */}
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={pickImage} style={styles.imageTouchable}>
               <Image
                 source={photo ? { uri: photo } : require('@/assets/images/defaultThumbnail.jpg')}
                 style={styles.profileImage}
-                resizeMode="cover" // Ensures image doesn't stretch beyond its container
+                resizeMode="cover"
               />
             </TouchableOpacity>
           </View>
@@ -171,7 +205,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ isVisible, onClose,
             onPress={handleSubmit}
             title={isEditing ? 'Save' : 'Add'}
             isLoading={isLoading}
-            style={styles.smallSubmitButton} 
+            style={styles.smallSubmitButton}
           />
         </View>
       </View>
@@ -185,7 +219,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
-    marginBottom: 20
+    marginBottom: 20,
   },
   modalContent: {
     width: '85%',
@@ -199,6 +233,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
+  },
+  deleteIconTopLeft: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
   },
   imageContainer: {
     position: 'relative',

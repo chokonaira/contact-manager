@@ -12,12 +12,12 @@ export default function TabLayout() {
 
   useEffect(() => {
     setTimeout(() => {
-      setIsLoading(false); 
-    }, 6000);
+      setIsLoading(false);
+    }, 4000);
   }, []);
 
   if (isLoading) {
-    return <SplashScreen />;  
+    return <SplashScreen />;
   }
 
   return (
@@ -25,7 +25,8 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

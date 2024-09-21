@@ -15,7 +15,7 @@ const Button: React.FC<ButtonProps> = ({ onPress, title, isLoading = false, disa
     <TouchableOpacity
       onPress={onPress}
       disabled={isLoading || disabled}
-      style={[styles.button, style, { backgroundColor: color, opacity: disabled ? 0.7 : 1 }]} // Apply custom styles here
+      style={[styles.button, style, { backgroundColor: color, opacity: disabled ? 0.7 : 1 }]} 
     >
       {isLoading ? (
         <ActivityIndicator size="small" color="#FFF" />

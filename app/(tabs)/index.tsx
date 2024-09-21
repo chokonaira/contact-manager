@@ -1,5 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Alert, StyleSheet, TouchableOpacity, Image, SafeAreaView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+  ActivityIndicator,
+  TextInput,
+  Modal,
+  Keyboard,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
@@ -15,9 +28,16 @@ interface Contact {
 
 export default function HomeScreen() {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | undefined>(undefined);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [highlightedContactId, setHighlightedContactId] = useState<string | null>(null);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(true); 
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const flatListRef = useRef<FlatList<Contact>>(null);
+  const searchInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     loadContactsFromStorage();
@@ -28,11 +48,16 @@ export default function HomeScreen() {
       const storedContacts = await AsyncStorage.getItem('contacts');
       if (storedContacts) {
         const parsedContacts = JSON.parse(storedContacts);
-        const sortedContacts = parsedContacts.sort((a: Contact, b: Contact) => a.name.localeCompare(b.name));
+        const sortedContacts = parsedContacts.sort((a: Contact, b: Contact) =>
+          a.name.localeCompare(b.name)
+        );
         setContacts(sortedContacts);
+        setFilteredContacts(sortedContacts);
       }
     } catch (error) {
       console.error('Failed to load contacts from storage', error);
+    } finally {
+      setIsLoadingContacts(false);
     }
   };
 
@@ -48,41 +73,35 @@ export default function HomeScreen() {
     const updatedContacts = [...contacts, { ...contact, id: Date.now().toString() }];
     const sortedContacts = updatedContacts.sort((a, b) => a.name.localeCompare(b.name));
     setContacts(sortedContacts);
+    setFilteredContacts(sortedContacts);
     saveContactsToStorage(sortedContacts);
     setIsModalVisible(false);
+
+    scrollToContact(contact.id);
   };
 
   const handleEditContactSubmit = (contact: Contact) => {
     const updatedContacts = contacts.map((c) => (c.id === contact.id ? contact : c));
     const sortedContacts = updatedContacts.sort((a, b) => a.name.localeCompare(b.name));
     setContacts(sortedContacts);
+    setFilteredContacts(sortedContacts);
     saveContactsToStorage(sortedContacts);
     setIsModalVisible(false);
+
+    scrollToContact(contact.id);
   };
 
   const handleDeleteContact = (contactId: string) => {
-    Alert.alert(
-      'Delete Contact',
-      'Are you sure you want to delete this contact?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            const updatedContacts = contacts.filter((contact) => contact.id !== contactId);
-            setContacts(updatedContacts);
-            saveContactsToStorage(updatedContacts);
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+    const updatedContacts = contacts.filter((contact) => contact.id !== contactId);
+    setContacts(updatedContacts);
+    setFilteredContacts(updatedContacts);
+    saveContactsToStorage(updatedContacts);
+    setIsModalVisible(false);
   };
 
   const syncContacts = async () => {
+    setIsMenuVisible(false);
     try {
-      setIsSyncing(true);
       const { status } = await Contacts.requestPermissionsAsync();
       if (status === 'granted') {
         const { data } = await Contacts.getContactsAsync({
@@ -90,31 +109,98 @@ export default function HomeScreen() {
         });
 
         if (data.length > 0) {
-          const newContacts = data.map((contact) => ({
+          const contactsWithPhoneNumbers = data.filter(contact => 
+            contact.phoneNumbers && contact.phoneNumbers.length > 0
+          );
+
+          const newContacts = contactsWithPhoneNumbers.map((contact) => ({
             id: contact.id,
             name: contact.name || 'No Name',
             phone: contact.phoneNumbers?.[0]?.number || 'No Phone',
             email: contact.emails?.[0]?.email,
           }));
-          const sortedContacts = [...contacts, ...newContacts].sort((a, b) => a.name.localeCompare(b.name));
+
+          const mergedContacts = [...contacts, ...newContacts];
+          const uniqueContacts = Array.from(
+            new Map(mergedContacts.map((item) => [item.id, item])).values()
+          );
+          const sortedContacts = uniqueContacts.sort((a, b) => a.name.localeCompare(b.name));
           setContacts(sortedContacts);
+          setFilteredContacts(sortedContacts);
           saveContactsToStorage(sortedContacts);
         }
       }
     } catch (error) {
       console.error('Failed to sync contacts', error);
     } finally {
-      setIsSyncing(false);
+      setTimeout(() => {
+        Alert.alert('Sync Completed', 'Contacts synced successfully');
+      }, 500);
     }
   };
 
+  const scrollToContact = (contactId: string) => {
+    const index = contacts.findIndex((contact) => contact.id === contactId);
+    if (index !== -1) {
+      setHighlightedContactId(contactId);
+      flatListRef.current?.scrollToIndex({ index, animated: true });
+      setTimeout(() => {
+        setHighlightedContactId(null);
+      }, 2000);
+    }
+  };
+
+  const deleteAllContacts = () => {
+    Alert.alert(
+      'Delete All Contacts',
+      'Are you sure you want to delete all contacts?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('contacts');
+            setContacts([]);
+            setFilteredContacts([]);
+            Alert.alert('Contacts Deleted', 'All contacts have been deleted.');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    if (query) {
+      const lowercasedQuery = query.toLowerCase();
+      const filtered = contacts.filter((contact) =>
+        contact.name.toLowerCase().includes(lowercasedQuery)
+      );
+      setFilteredContacts(filtered);
+    } else {
+      setFilteredContacts(contacts);
+    }
+  };
+
+  const handleCancelSearch = () => {
+    setSearchQuery('');
+    setFilteredContacts(contacts);
+    Keyboard.dismiss(); 
+  };
+
   const renderContactItem = ({ item }: { item: Contact }) => (
-    <View style={styles.contactContainer}>
+    <View
+      style={[
+        styles.contactContainer,
+        highlightedContactId === item.id ? styles.highlightedContact : {},
+      ]}
+    >
       <TouchableOpacity
         style={styles.contactContent}
         onPress={() => {
-          setSelectedContact(item);  // Set the selected contact for editing
-          setIsModalVisible(true);   // Show the modal
+          setSelectedContact(item);
+          setIsModalVisible(true);
         }}
       >
         {item.photo ? (
@@ -130,12 +216,8 @@ export default function HomeScreen() {
           {item.email && <Text style={styles.contactDetails}>{item.email}</Text>}
         </View>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => handleDeleteContact(item.id)}>
-        <MaterialIcons name="delete" size={24} color="gray" style={styles.deleteIcon} />
-      </TouchableOpacity>
     </View>
   );
-  
 
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
@@ -154,42 +236,90 @@ export default function HomeScreen() {
     </View>
   );
 
+  if (isLoadingContacts) {
+    return (
+      <SafeAreaView style={styles.safeContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#40BF56"
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeContainer}>
-      {contacts.length > 0 && (
-        <View style={styles.header}>
-          {isSyncing ? (
-            <ActivityIndicator size="small" color="#40BF56" style={styles.headerIcon} />
-          ) : (
-            <Ionicons
-              name="sync"
-              size={32}
-              color="gray"
-              onPress={syncContacts}
-              style={styles.headerIcon}
-            />
-          )}
-          <Text style={styles.headerTitle}>Contacts</Text>
-          <MaterialIcons
-            name="add"
-            size={32}
-            color="gray"
-            onPress={() => {
-              setSelectedContact(undefined);
-              setIsModalVisible(true);
-            }}
-            style={styles.headerIcon}
-          />
-        </View>
-      )}
+      <View style={styles.header}>
+        <Ionicons
+          name="ellipsis-horizontal"
+          size={32}
+          color="gray"
+          onPress={() => setIsMenuVisible(true)}
+          style={styles.headerIcon}
+        />
+        <Text style={styles.headerTitle}>Contacts</Text>
+        <MaterialIcons
+          name="add"
+          size={32}
+          color="gray"
+          onPress={() => {
+            setSelectedContact(undefined);
+            setIsModalVisible(true);
+          }}
+          style={styles.headerIcon}
+        />
+      </View>
+
+      <View style={styles.searchContainer}>
+        <TextInput
+          ref={searchInputRef}
+          placeholder="Search Contacts"
+          placeholderTextColor="gray" 
+          value={searchQuery}
+          onFocus={() => setIsSearchFocused(true)}
+          onBlur={() => setIsSearchFocused(false)}
+          onChangeText={handleSearchChange}
+          style={styles.searchInput}
+          editable={contacts.length > 0}
+        />
+        <TouchableOpacity
+          style={[styles.cancelSearchButton, { opacity: isSearchFocused && searchQuery ? 1 : 0.5 }]}
+          onPress={handleCancelSearch}
+          disabled={!isSearchFocused || !searchQuery}
+        >
+          <Text style={styles.cancelSearchText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
 
       <FlatList
-        data={contacts}
+        data={filteredContacts}
         keyExtractor={(item) => item.id}
         renderItem={renderContactItem}
-        contentContainerStyle={contacts.length === 0 ? styles.emptyContent : styles.listContent}
+        contentContainerStyle={filteredContacts.length === 0 ? styles.emptyContent : styles.listContent}
         ListEmptyComponent={renderEmptyList}
+        ref={flatListRef}
       />
+
+      <Modal visible={isMenuVisible} transparent animationType="slide">
+        <View style={styles.menuContainer}>
+          <View style={styles.menuContent}>
+            <TouchableOpacity style={styles.menuItem} onPress={syncContacts}>
+              <Text style={styles.menuText}>Sync Contacts</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.menuItem, { opacity: contacts.length > 0 ? 1 : 0.5 }]}
+              onPress={contacts.length > 0 ? deleteAllContacts : undefined}
+              disabled={contacts.length === 0}
+            >
+              <Text style={styles.menuText}>Delete All Contacts</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => setIsMenuVisible(false)}>
+              <Text style={styles.menuText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <ContactFormModal
         isVisible={isModalVisible}
@@ -197,6 +327,7 @@ export default function HomeScreen() {
         onSubmit={selectedContact ? handleEditContactSubmit : handleAddContact}
         contact={selectedContact}
         isEditing={!!selectedContact}
+        onDelete={handleDeleteContact}
       />
     </SafeAreaView>
   );
@@ -222,12 +353,36 @@ const styles = StyleSheet.create({
   headerIcon: {
     paddingHorizontal: 10,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  searchInput: {
+    flex: 1,
+    borderColor: 'lightgray',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  cancelSearchButton: {
+    marginLeft: 10,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    justifyContent: 'center',
+    height: 40,
+  },
+  cancelSearchText: {
+    color: 'gray',
+  },
   contactContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: 10,
     paddingHorizontal: 10,
+    width: '100%', 
   },
   contactContent: {
     flexDirection: 'row',
@@ -263,11 +418,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'white',
   },
-  deleteIcon: {
-    marginLeft: 15,
-  },
   listContent: {
     paddingTop: 10,
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+  },
+  highlightedContact: {
+    backgroundColor: '#e0e0e0',
   },
   emptyContent: {
     flexGrow: 1,
@@ -320,5 +477,25 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     marginLeft: 10,
+  },
+  menuContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  menuContent: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  menuItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray',
+  },
+  menuText: {
+    fontSize: 16,
+    color: 'black',
   },
 });

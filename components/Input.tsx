@@ -15,7 +15,7 @@ const Input: React.FC<InputProps> = ({ placeholder, value, onChangeText, keyboar
     <View style={styles.inputWrapper}>
       <TextInput
         placeholder={placeholder}
-        placeholderTextColor="#999"  // Ensure placeholder is visible
+        placeholderTextColor="#999" 
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
