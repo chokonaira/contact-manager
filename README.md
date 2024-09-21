@@ -2,6 +2,9 @@
 
 A mobile application built with **React Native** and **TypeScript**. This app allows users to manage their contacts easily with features like syncing mobile contacts, adding contacts manually, uploading profile photos, and clearing all contacts.
 
+[Scan QR or Run the App with Expo go](https://expo.dev/preview/update?message=initial&updateRuntimeVersion=1.0.0&slug=exp&projectId=45817b8c-8c28-4c71-a832-01b76ab9b113&group=db77c6a2)
+
+
 ## App Features:
 - **Sync Contacts**: Sync your phone's contacts and manage them within the app.
 - **Add Contacts Manually**: Easily add new contacts by entering their details.
@@ -54,9 +57,6 @@ npm test
 ## Running the Already Published App
 
 You can also run the already published build using **Expo Go** by simply downloading the Expo Go app and clicking the link below:
-
-[Run the App](https://expo.dev/preview/update?message=initial&updateRuntimeVersion=1.0.0&slug=exp&projectId=45817b8c-8c28-4c71-a832-01b76ab9b113&group=db77c6a2)
-
 ---
 
 ### Project Details:
