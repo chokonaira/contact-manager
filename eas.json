@@ -1,23 +1,14 @@
-{
-  "owner": "choko101", 
-  "cli": {
-    "appVersionSource": "remote"
-  },
+{ 
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "production": {
+    "preview": {
       "android": {
-        "image": "latest"
+        "image": "latest"  
       },
       "ios": {
         "image": "latest"
-      }
+      },
+      "channel": "staging",
+      "distribution": "internal"
     }
-  },
-  "submit": {
-    "production": {}
   }
 }
