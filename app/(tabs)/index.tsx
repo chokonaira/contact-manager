@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
-import { SafeAreaView, ActivityIndicator, Alert, Modal } from 'react-native';
-import { ContactList } from '@/components/ContactList';
-import { SearchInput } from '@/components/SearchInput';
-import { useContacts, useSyncContacts, Contact } from '@/hooks/useContacts';
+import { SafeAreaView, ActivityIndicator, Alert } from 'react-native';
+import ContactList from '@/components/ContactList';
+import SearchInput from '@/components/SearchInput';
+import { useContacts, Contact } from '@/hooks/useContacts';
+import { useSyncContacts } from '@/hooks/useSyncContacts';
 import FormModal from '@/components/FormModal';
 import ActionButtons from '@/components/ActionButtons';
 
 export default function HomeScreen() {
-  const { contacts, filteredContacts, searchQuery, isLoadingContacts, flatListRef, filterContacts, addContact, setFilteredContacts } = useContacts();
+  const {
+    contacts,
+    filteredContacts,
+    searchQuery,
+    isLoadingContacts,
+    flatListRef,
+    filterContacts,
+    addContact,
+    setFilteredContacts,
+  } = useContacts();
+
   const { syncContacts } = useSyncContacts(setFilteredContacts);
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -35,8 +46,15 @@ export default function HomeScreen() {
   };
 
   const handleSaveContact = (contact: Contact) => {
-    addContact(contact);
+    const newContactIndex = addContact(contact);
     setIsModalVisible(false);
+
+    setTimeout(() => {
+      flatListRef.current?.scrollToIndex({
+        index: newContactIndex,
+        animated: true,
+      });
+    }, 300);
   };
 
   if (isLoadingContacts) {
@@ -49,18 +67,21 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <SearchInput
-        searchQuery={searchQuery}
-        onSearchChange={filterContacts}
-        onCancelSearch={handleCancelSearch}
-        isSearchFocused={isSearchFocused}
-        contactsAvailable={contacts.length > 0}
-      />
+      {contacts.length > 0 && (
+        <SearchInput
+          searchQuery={searchQuery}
+          onSearchChange={filterContacts}
+          onCancelSearch={handleCancelSearch}
+          isSearchFocused={isSearchFocused}
+          contactsAvailable={contacts.length > 0}
+        />
+      )}
 
       <ContactList
         contacts={filteredContacts}
         highlightedContactId={null}
         onPress={handlePressContact}
+        flatListRef={flatListRef}
       />
 
       <ActionButtons onAddContact={handleAddContact} onSyncContacts={handleSyncContacts} />

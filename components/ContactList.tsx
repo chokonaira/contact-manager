@@ -1,72 +1,43 @@
 import React from 'react';
-import { View, FlatList, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, FlatList, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Contact } from '@/hooks/useContacts';
 
 interface ContactListProps {
   contacts: Contact[];
-  highlightedContactId: string | null;
   onPress: (contact: Contact) => void;
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts, highlightedContactId, onPress }) => {
+const ContactList: React.FC<ContactListProps> = ({ contacts, onPress }) => {
   const renderContactItem = ({ item }: { item: Contact }) => (
-    <View
-      style={[
-        styles.contactContainer,
-        highlightedContactId === item.id ? styles.highlightedContact : {},
-      ]}
-    >
-      <TouchableOpacity style={styles.contactContent} onPress={() => onPress(item)}>
-        {item.photo ? (
-          <Image source={{ uri: item.photo }} style={styles.contactImage} />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <Text style={styles.initialsText}>{item.name.charAt(0)}</Text>
-          </View>
-        )}
-        <View style={styles.contactInfo}>
-          <Text style={styles.contactName}>{item.name}</Text>
-          <Text style={styles.contactDetails}>{item.phone}</Text>
-          {item.email && <Text style={styles.contactDetails}>{item.email}</Text>}
+    <TouchableOpacity onPress={() => onPress(item)} style={styles.contactItem}>
+      {item.photo ? (
+        <Image source={{ uri: item.photo }} style={styles.contactImage} />
+      ) : (
+        <View style={styles.placeholderImage}>
+          <Text style={styles.initials}>{item.name.charAt(0)}</Text>
         </View>
-      </TouchableOpacity>
-    </View>
+      )}
+      <View style={styles.contactInfo}>
+        <Text style={styles.contactName}>{item.name}</Text>
+        <Text style={styles.contactPhone}>{item.phone}</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
     <FlatList
       data={contacts}
-      keyExtractor={item => item.id}
+      keyExtractor={(item) => item.id}
       renderItem={renderContactItem}
-      contentContainerStyle={styles.listContent}
     />
   );
 };
 
 const styles = StyleSheet.create({
-  contactContainer: {
+  contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
-    paddingHorizontal: 10,
-    width: '100%',
-  },
-  contactContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  contactInfo: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  contactName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  contactDetails: {
-    fontSize: 14,
-    color: 'gray',
+    padding: 10,
   },
   contactImage: {
     width: 50,
@@ -77,21 +48,23 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'lightgray',
+    backgroundColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  initialsText: {
-    fontSize: 18,
-    color: 'white',
+  initials: {
+    fontSize: 20,
+    color: '#fff',
   },
-  listContent: {
-    paddingTop: 10,
-    flexGrow: 1,
-    justifyContent: 'flex-start',
+  contactInfo: {
+    marginLeft: 10,
   },
-  highlightedContact: {
-    backgroundColor: '#e0e0e0',
+  contactName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  contactPhone: {
+    color: '#888',
   },
 });
 

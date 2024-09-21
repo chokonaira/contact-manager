@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, Image, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Modal, Image, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import Input from './Input';
 import Button from './Button';
-
-interface Contact {
-  id?: string;
-  name: string;
-  phone: string;
-  email?: string;
-  photo?: string;
-}
+import { useFormValidation, Contact } from '@/hooks/useFormValidation';
+import { useImagePicker } from '@/hooks/useImagePicker';
 
 interface ContactFormModalProps {
   isVisible: boolean;
@@ -30,101 +23,27 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   isEditing = false,
   onDelete,
 }) => {
-  const [name, setName] = useState<string>('');
-  const [phone, setPhone] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [photo, setPhoto] = useState<string | null>(null);
+  const {
+    name,
+    phone,
+    email,
+    nameError,
+    phoneError,
+    emailError,
+    isLoading,
+    handleNameChange,
+    handlePhoneChange,
+    handleEmailChange,
+    handleSubmit,
+  } = useFormValidation(contact, isEditing);
 
-  const [nameError, setNameError] = useState<string>('');
-  const [phoneError, setPhoneError] = useState<string>('');
-  const [emailError, setEmailError] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Initialize the image picker with the contact's existing photo, or null for new contact
+  const { photo, pickImage, resetImage, setInitialPhoto } = useImagePicker(contact?.photo || null);
 
   useEffect(() => {
-    if (isEditing && contact) {
-      setName(contact.name);
-      setPhone(contact.phone);
-      setEmail(contact.email || '');
-      setPhoto(contact.photo || null);
-    } else {
-      setName('');
-      setPhone('');
-      setEmail('');
-      setPhoto(null);
-      setNameError('');
-      setPhoneError('');
-      setEmailError('');
-    }
-  }, [isVisible, contact, isEditing]);
-
-  const validateEmail = (email: string) => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
-  };
-
-  const handleNameChange = (text: string) => {
-    setName(text);
-    if (!text.trim()) {
-      setNameError('Name is required');
-    } else {
-      setNameError('');
-    }
-  };
-
-  const handlePhoneChange = (text: string) => {
-    const cleanedPhone = text.replace(/[^0-9]/g, '');
-    setPhone(cleanedPhone);
-    if (!cleanedPhone.trim()) {
-      setPhoneError('Phone number is required');
-    } else {
-      setPhoneError('');
-    }
-  };
-
-  const handleEmailChange = (text: string) => {
-    setEmail(text);
-    if (text && !validateEmail(text)) {
-      setEmailError('Invalid email format');
-    } else {
-      setEmailError('');
-    }
-  };
-
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setPhoto(result.assets[0].uri);
-    }
-  };
-
-  const handleResetImage = () => {
-    setPhoto(null);
-  };
-
-  const handleSubmit = () => {
-    if (!name || !phone) {
-      Alert.alert('Validation Error', 'Name and phone number are required.');
-      return;
-    }
-
-    if (email && !validateEmail(email)) {
-      Alert.alert('Validation Error', 'Please enter a valid email address.');
-      return;
-    }
-
-    setIsLoading(true);
-    setTimeout(() => {
-      onSubmit({ id: contact?.id, name, phone, email, photo });
-      setIsLoading(false);
-      onClose();
-    }, 800);
-  };
+    // Whenever the contact changes (new contact or editing existing), set the initial photo
+    setInitialPhoto(contact?.photo || null);
+  }, [contact]);
 
   const handleDelete = () => {
     Alert.alert(
@@ -145,6 +64,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       ],
       { cancelable: true }
     );
+  };
+
+  const handleSaveContact = () => {
+    handleSubmit((savedContact: Contact) => {
+      onSubmit({
+        ...savedContact,
+        photo,  // Ensure the photo is saved with the contact data
+      });
+    }, onClose); 
   };
 
   return (
@@ -172,7 +100,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           </View>
 
           {photo && (
-            <TouchableOpacity onPress={handleResetImage} style={styles.deleteIcon}>
+            <TouchableOpacity onPress={resetImage} style={styles.deleteIcon}>
               <Ionicons name="trash-outline" size={18} color="gray" />
             </TouchableOpacity>
           )}
@@ -202,7 +130,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           />
 
           <Button
-            onPress={handleSubmit}
+            onPress={handleSaveContact}
             title={isEditing ? 'Save' : 'Add'}
             isLoading={isLoading}
             style={styles.smallSubmitButton}
