@@ -1,13 +1,26 @@
 import React, { useState } from 'react';
-import { SafeAreaView, ActivityIndicator, Alert } from 'react-native';
-import ContactList from '@/components/ContactList';
-import SearchInput from '@/components/SearchInput';
-import { useContacts, Contact } from '@/hooks/useContacts';
-import { useSyncContacts } from '@/hooks/useSyncContacts';
+import {
+  View,
+  Text,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ActivityIndicator,
+  TextInput,
+} from 'react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import FormModal from '@/components/FormModal';
-import ActionButtons from '@/components/ActionButtons';
+import { useContacts, Contact } from '@/hooks/useContacts';
+import ContactList from '@/components/ContactList';
+import EmptyList from '@/components/EmptyList';
+import MenuModal from '@/components/MenuModal';
 
 export default function HomeScreen() {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | undefined>(undefined);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+
   const {
     contacts,
     filteredContacts,
@@ -16,83 +29,330 @@ export default function HomeScreen() {
     flatListRef,
     filterContacts,
     addContact,
-    setFilteredContacts,
+    editContact,
+    handleDeleteContact,
+    scrollToContact,
+    highlightedContactId,
+    syncContacts,
+    deleteAllContacts,
   } = useContacts();
 
-  const { syncContacts } = useSyncContacts(setFilteredContacts);
-
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-
-  const handleCancelSearch = () => {
-    filterContacts('');
-    setIsSearchFocused(false);
+  const handleAddContact = (contact: Contact) => {
+    const index = addContact(contact);
+    if (index !== -1) {
+      setIsModalVisible(false);
+      scrollToContact(index);
+    } else {
+      Alert.alert('Duplicate Contact', 'A contact with this phone number already exists.');
+    }
   };
 
-  const handlePressContact = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsModalVisible(true);
+  const handleEditContactSubmit = (contact: Contact) => {
+    const index = editContact(contact);
+    if (index !== -1) {
+      setIsModalVisible(false);
+      scrollToContact(index);
+    } else {
+      Alert.alert('Duplicate Contact', 'A contact with this phone number already exists.');
+    }
   };
 
-  const handleAddContact = () => {
-    setSelectedContact(null);
-    setIsModalVisible(true);
+  const onDeleteContact = (contactId: string) => {
+    handleDeleteContact(contactId);
+    setIsModalVisible(false);
   };
 
   const handleSyncContacts = async () => {
+    setIsMenuVisible(false);
     await syncContacts();
-    Alert.alert('Sync Completed', 'Contacts synced successfully');
+    setTimeout(() => {
+      Alert.alert('Sync Completed', 'Contacts synced successfully');
+    }, 500);
   };
 
-  const handleSaveContact = (contact: Contact) => {
-    const newContactIndex = addContact(contact);
-    setIsModalVisible(false);
+  const handleDeleteAllContacts = () => {
+    Alert.alert('Delete All Contacts', 'Are you sure you want to delete all contacts?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteAllContacts();
+          Alert.alert('Contacts Deleted', 'All contacts have been deleted.');
+        },
+      },
+    ]);
+  };
 
-    setTimeout(() => {
-      flatListRef.current?.scrollToIndex({
-        index: newContactIndex,
-        animated: true,
-      });
-    }, 300);
+  const handleSearchChange = (query: string) => {
+    filterContacts(query);
+  };
+
+  const handleCancelSearch = () => {
+    filterContacts('');
   };
 
   if (isLoadingContacts) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#40BF56" />
+      <SafeAreaView style={styles.safeContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#40BF56"
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      {contacts.length > 0 && (
-        <SearchInput
-          searchQuery={searchQuery}
-          onSearchChange={filterContacts}
-          onCancelSearch={handleCancelSearch}
-          isSearchFocused={isSearchFocused}
-          contactsAvailable={contacts.length > 0}
+    <SafeAreaView style={styles.safeContainer}>
+      <View style={styles.header}>
+        <Ionicons
+          name="ellipsis-horizontal"
+          size={32}
+          color="gray"
+          onPress={() => setIsMenuVisible(true)}
+          style={styles.headerIcon}
         />
+        <Text style={styles.headerTitle}>
+          {contacts.length > 0 ? `${contacts.length} Contacts` : 'Contacts'}
+        </Text>
+        <MaterialIcons
+          name="add"
+          size={32}
+          color="gray"
+          onPress={() => {
+            setSelectedContact(undefined);
+            setIsModalVisible(true);
+          }}
+          style={styles.headerIcon}
+        />
+      </View>
+
+      {contacts.length > 0 && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            placeholder="Search Contacts"
+            placeholderTextColor="gray"
+            value={searchQuery}
+            onChangeText={handleSearchChange}
+            style={styles.searchInput}
+            editable={contacts.length > 0}
+          />
+          <TouchableOpacity
+            style={styles.cancelSearchButton}
+            onPress={handleCancelSearch}
+            disabled={!searchQuery}
+          >
+            <Text style={styles.cancelSearchText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       <ContactList
         contacts={filteredContacts}
-        highlightedContactId={null}
-        onPress={handlePressContact}
-        flatListRef={flatListRef}
+        onPress={(contact) => {
+          setSelectedContact(contact);
+          setIsModalVisible(true);
+        }}
+        highlightedContactId={highlightedContactId}
+        ref={flatListRef}
+        ListEmptyComponent={
+          <EmptyList
+            onSyncContacts={handleSyncContacts}
+            onAddContact={() => {
+              setSelectedContact(undefined);
+              setIsModalVisible(true);
+            }}
+          />
+        }
+        contentContainerStyle={
+          filteredContacts.length === 0 ? styles.emptyContent : styles.listContent
+        }
       />
 
-      <ActionButtons onAddContact={handleAddContact} onSyncContacts={handleSyncContacts} />
+      <MenuModal
+        visible={isMenuVisible}
+        onClose={() => setIsMenuVisible(false)}
+        onSyncContacts={handleSyncContacts}
+        onDeleteAllContacts={handleDeleteAllContacts}
+        hasContacts={contacts.length > 0}
+      />
 
       <FormModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        onSubmit={handleSaveContact}
+        onSubmit={selectedContact ? handleEditContactSubmit : handleAddContact}
         contact={selectedContact}
         isEditing={!!selectedContact}
+        onDelete={() => selectedContact && onDeleteContact(selectedContact.id)}
       />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray',
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  headerIcon: {
+    paddingHorizontal: 10,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  searchInput: {
+    flex: 1,
+    borderColor: 'lightgray',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  cancelSearchButton: {
+    marginLeft: 10,
+    borderColor: 'lightgray',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 40,
+  },
+  cancelSearchText: {
+    color: 'gray',
+  },
+  contactContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    paddingHorizontal: 10,
+  },
+  contactContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  contactInfo: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  contactDetails: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  contactImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  placeholderImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'lightgray',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  initialsText: {
+    fontSize: 18,
+    color: 'white',
+  },
+  listContent: {
+    paddingTop: 10,
+  },
+  highlightedContact: {
+    backgroundColor: '#e0e0e0',
+  },
+  emptyContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'gray',
+    marginBottom: 10,
+  },
+  infoText: {
+    fontSize: 14,
+    color: 'gray',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  syncButton: {
+    backgroundColor: '#40BF56',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  syncButtonText: {
+    color: 'white',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  addButton: {
+    backgroundColor: 'orange',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  menuContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  menuContent: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  menuItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray',
+  },
+  menuText: {
+    fontSize: 16,
+    color: 'black',
+  },
+});
