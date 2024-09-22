@@ -13,16 +13,18 @@ interface ButtonProps {
 const Button: React.FC<ButtonProps> = ({ onPress, title, isLoading = false, disabled = false, color = '#40BF56', style }) => {
   return (
     <TouchableOpacity
+      testID="button"
       onPress={onPress}
       disabled={isLoading || disabled}
-      style={[styles.button, style, { backgroundColor: color, opacity: disabled ? 0.7 : 1 }]} 
+      style={[styles.button, style, { backgroundColor: color, opacity: disabled ? 0.7 : 1 }]}
     >
       {isLoading ? (
-        <ActivityIndicator size="small" color="#FFF" />
+        <ActivityIndicator testID="activity-indicator" size="small" color="#FFF" />
       ) : (
         <Text style={styles.buttonText}>{title}</Text>
       )}
     </TouchableOpacity>
+
   );
 };
 

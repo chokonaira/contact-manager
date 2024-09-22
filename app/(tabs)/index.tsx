@@ -99,6 +99,7 @@ export default function HomeScreen() {
           size="large"
           color="#40BF56"
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          testID="loading-indicator"
         />
       </SafeAreaView>
     );
@@ -113,9 +114,10 @@ export default function HomeScreen() {
           color="gray"
           onPress={() => setIsMenuVisible(true)}
           style={styles.headerIcon}
+          testID="menu-icon"
         />
-        <Text style={styles.headerTitle}>
-          {contacts.length > 0 ? `${contacts.length} Contacts` : 'Contacts'}
+        <Text testID="header-title" style={styles.headerTitle}>
+        {contacts.length > 0 ? `${contacts.length} Contact${contacts.length === 1 ? '' : 's'}` : 'No Contacts'}
         </Text>
         <MaterialIcons
           name="add"
@@ -126,11 +128,12 @@ export default function HomeScreen() {
             setIsModalVisible(true);
           }}
           style={styles.headerIcon}
+          testID="add-icon"
         />
       </View>
 
       {contacts.length > 0 && (
-        <View style={styles.searchContainer}>
+        <View style={styles.searchContainer} testID="search-container">
           <TextInput
             placeholder="Search Contacts"
             placeholderTextColor="gray"
@@ -138,11 +141,13 @@ export default function HomeScreen() {
             onChangeText={handleSearchChange}
             style={styles.searchInput}
             editable={contacts.length > 0}
+            testID="search-input"
           />
           <TouchableOpacity
             style={styles.cancelSearchButton}
             onPress={handleCancelSearch}
             disabled={!searchQuery}
+            testID="cancel-search-button"
           >
             <Text style={styles.cancelSearchText}>Cancel</Text>
           </TouchableOpacity>
@@ -169,6 +174,7 @@ export default function HomeScreen() {
         contentContainerStyle={
           filteredContacts.length === 0 ? styles.emptyContent : styles.listContent
         }
+        testID="contact-list"
       />
 
       <MenuModal
@@ -177,6 +183,7 @@ export default function HomeScreen() {
         onSyncContacts={handleSyncContacts}
         onDeleteAllContacts={handleDeleteAllContacts}
         hasContacts={contacts.length > 0}
+        testID="menu-modal"
       />
 
       <FormModal
@@ -186,6 +193,7 @@ export default function HomeScreen() {
         contact={selectedContact}
         isEditing={!!selectedContact}
         onDelete={() => selectedContact && onDeleteContact(selectedContact.id)}
+        testID="form-modal"
       />
     </SafeAreaView>
   );
@@ -237,122 +245,12 @@ const styles = StyleSheet.create({
   cancelSearchText: {
     color: 'gray',
   },
-  contactContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 10,
-    paddingHorizontal: 10,
-  },
-  contactContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  contactInfo: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  contactName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  contactDetails: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  contactImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  placeholderImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'lightgray',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  initialsText: {
-    fontSize: 18,
-    color: 'white',
-  },
   listContent: {
     paddingTop: 10,
-  },
-  highlightedContact: {
-    backgroundColor: '#e0e0e0',
   },
   emptyContent: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'gray',
-    marginBottom: 10,
-  },
-  infoText: {
-    fontSize: 14,
-    color: 'gray',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  syncButton: {
-    backgroundColor: '#40BF56',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  syncButtonText: {
-    color: 'white',
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  addButton: {
-    backgroundColor: 'orange',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  menuContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  menuContent: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  menuItem: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'lightgray',
-  },
-  menuText: {
-    fontSize: 16,
-    color: 'black',
   },
 });

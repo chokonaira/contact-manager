@@ -9,16 +9,16 @@ interface EmptyListProps {
 
 const EmptyList: React.FC<EmptyListProps> = ({ onSyncContacts, onAddContact }) => (
   <View style={styles.emptyContainer}>
-    <Text style={styles.emptyText}>No contacts found.</Text>
-    <Text style={styles.infoText}>Sync your mobile contacts or add manually.</Text>
+    <Text testID="empty-text" style={styles.emptyText}>No contacts found.</Text>
+    <Text testID="info-text" style={styles.infoText}>Sync your mobile contacts or add manually.</Text>
     <View style={styles.actionButtons}>
-      <TouchableOpacity style={styles.syncButton} onPress={onSyncContacts}>
+      <TouchableOpacity testID="sync-button" style={styles.syncButton} onPress={onSyncContacts}>
         <Ionicons name="sync" size={24} color="white" />
-        <Text style={styles.syncButtonText}>Sync Contacts</Text>
+        <Text testID="sync-button-text" style={styles.syncButtonText}>Sync Contacts</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.addButton} onPress={onAddContact}>
+      <TouchableOpacity testID="add-button" style={styles.addButton} onPress={onAddContact}>
         <MaterialIcons name="add" size={24} color="white" />
-        <Text style={styles.addButtonText}>Add Manually</Text>
+        <Text testID="add-button-text" style={styles.addButtonText}>Add Manually</Text>
       </TouchableOpacity>
     </View>
   </View>

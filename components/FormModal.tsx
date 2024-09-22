@@ -34,9 +34,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     handlePhoneChange,
     handleEmailChange,
     handleSubmit,
+    resetForm,
   } = useFormValidation(contact, isEditing);
 
-  const { photo, pickImage, resetImage, setInitialPhoto } = useImagePicker(contact?.photo || null);
+  const { photo, pickImage, resetImage, setInitialPhoto } = useImagePicker(contact?.photo || undefined);
 
   useEffect(() => {
     setInitialPhoto(contact?.photo || null);
@@ -54,6 +55,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           onPress: () => {
             if (contact && contact.id && onDelete) {
               onDelete(contact.id);
+              resetForm();
               onClose();
             }
           },
@@ -69,7 +71,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         ...savedContact,
         photo,
       });
-    }, onClose); 
+      resetForm();
+    }, onClose);
   };
 
   return (
@@ -77,12 +80,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           {isEditing && (
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteIconTopLeft}>
+            <TouchableOpacity testID="delete-icon-top-left" onPress={handleDelete} style={styles.deleteIconTopLeft}>
               <Ionicons name="trash-outline" size={24} color="gray" />
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity onPress={onClose} style={styles.cancelIcon}>
+          <TouchableOpacity testID="cancel-icon" onPress={onClose} style={styles.cancelIcon}>
             <Ionicons name="close-circle-outline" size={30} color="gray" />
           </TouchableOpacity>
 

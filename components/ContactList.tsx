@@ -24,10 +24,19 @@ const ContactList = forwardRef<FlatList<Contact>, ContactListProps>(
           styles.contactContainer,
           highlightedContactId === item.id ? styles.highlightedContact : {},
         ]}
+        testID={`contact-item-${item.id}`}
       >
-        <TouchableOpacity onPress={() => onPress(item)} style={styles.contactContent}>
+        <TouchableOpacity
+          testID={`contact-touchable-${item.id}`}
+          onPress={() => onPress(item)}
+          style={styles.contactContent}
+        >
           {item.photo ? (
-            <Image source={{ uri: item.photo }} style={styles.contactImage} />
+            <Image
+              source={{ uri: item.photo }}
+              style={styles.contactImage}
+              testID={`contact-image-${item.id}`}
+            />
           ) : (
             <View style={styles.placeholderImage}>
               <Text style={styles.initials}>{item.name.charAt(0)}</Text>

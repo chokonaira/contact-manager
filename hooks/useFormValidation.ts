@@ -79,7 +79,7 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
       setIsLoading(false);
     }, 600);
   };
-
+  
   return {
     name,
     phone,

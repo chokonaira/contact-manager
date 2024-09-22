@@ -24,22 +24,23 @@ const MenuModal: React.FC<MenuModalProps> = ({
   hasContacts,
 }) => {
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <TouchableWithoutFeedback onPress={onClose}>
+    <Modal visible={visible} transparent animationType="slide" testID="menu-modal">
+      <TouchableWithoutFeedback onPress={onClose} testID="overlay">
         <View style={styles.menuContainer}>
           <TouchableWithoutFeedback>
             <View style={styles.menuContent}>
-              <TouchableOpacity style={styles.menuItem} onPress={onSyncContacts}>
+              <TouchableOpacity testID="sync-contacts" style={styles.menuItem} onPress={onSyncContacts}>
                 <Text style={styles.menuText}>Sync Contacts</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                testID="delete-all-contacts"
                 style={[styles.menuItem, { opacity: hasContacts ? 1 : 0.5 }]}
                 onPress={hasContacts ? onDeleteAllContacts : undefined}
                 disabled={!hasContacts}
               >
                 <Text style={styles.menuText}>Delete All Contacts</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem} onPress={onClose}>
+              <TouchableOpacity testID="close-modal" style={styles.menuItem} onPress={onClose}>
                 <Text style={styles.menuText}>Close</Text>
               </TouchableOpacity>
             </View>
