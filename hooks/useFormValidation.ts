@@ -13,7 +13,7 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
   const [name, setName] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<string | undefined>(undefined);
   const [nameError, setNameError] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -23,7 +23,7 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
       setName(contact.name);
       setPhone(contact.phone);
       setEmail(contact.email || "");
-      setPhoto(contact.photo || null);
+      setPhoto(contact.photo || undefined);
     } else {
       resetForm();
     }
@@ -38,7 +38,7 @@ export const useFormValidation = (contact: Contact | null, isEditing: boolean) =
     setName("");
     setPhone("");
     setEmail("");
-    setPhoto(null);
+    setPhoto(undefined);
     setNameError("");
     setEmailError("");
   };

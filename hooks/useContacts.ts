@@ -64,17 +64,18 @@ export const useContacts = () => {
     if (duplicate) {
       return -1; 
     }
-
+  
     const newContact = { ...contact, id: Date.now().toString() };
     const updatedContacts = [...contacts, newContact];
     const sortedContacts = updatedContacts.sort((a, b) => a.name.localeCompare(b.name));
-    setContacts(sortedContacts);
+    
+    setContacts(sortedContacts); 
     setFilteredContacts(sortedContacts);
-    saveContactsToStorage(sortedContacts);
-
-    const index = sortedContacts.findIndex((c) => c.id === newContact.id);
-    return index;
-  };
+    
+    saveContactsToStorage(sortedContacts); 
+    
+    return sortedContacts.findIndex((c) => c.id === newContact.id);
+  };  
 
   const editContact = (contact: Contact) => {
     const duplicate = contacts.find((c) => c.phone === contact.phone && c.id !== contact.id);
@@ -117,23 +118,22 @@ export const useContacts = () => {
         const { data } = await Contacts.getContactsAsync({
           fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
         });
-
+  
         if (data.length > 0) {
           const contactsWithPhoneNumbers = data.filter(
             (contact) => contact.phoneNumbers && contact.phoneNumbers.length > 0
           );
-
+  
           const newContacts = contactsWithPhoneNumbers.map((contact) => ({
-            id: contact.id,
+            id: contact.id || Date.now().toString(),
             name: contact.name || 'No Name',
             phone: contact.phoneNumbers?.[0]?.number || 'No Phone',
             email: contact.emails?.[0]?.email,
-            photo: contact.imageAvailable ? contact.thumbnailPath : undefined,
+            photo: contact.imageAvailable ? contact.image?.uri : undefined, 
           }));
-
+  
           const mergedContacts = [...contacts, ...newContacts];
-
-          // Remove duplicates based on phone number
+  
           const uniqueContactsMap = new Map<string, Contact>();
           mergedContacts.forEach((contact) => {
             if (contact.phone) {
@@ -141,7 +141,7 @@ export const useContacts = () => {
             }
           });
           const uniqueContacts = Array.from(uniqueContactsMap.values());
-
+  
           const sortedContacts = uniqueContacts.sort((a, b) => a.name.localeCompare(b.name));
           setContacts(sortedContacts);
           setFilteredContacts(sortedContacts);
@@ -151,7 +151,7 @@ export const useContacts = () => {
     } catch (error) {
       console.error('Failed to sync contacts', error);
     }
-  };
+  };  
 
   const deleteAllContacts = async () => {
     await AsyncStorage.removeItem('contacts');
