@@ -14,6 +14,7 @@ interface MenuModalProps {
   onSyncContacts: () => void;
   onDeleteAllContacts: () => void;
   hasContacts: boolean;
+  testID?: string
 }
 
 const MenuModal: React.FC<MenuModalProps> = ({

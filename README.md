@@ -2,6 +2,9 @@
 
 A mobile application built with **React Native** and **TypeScript**. This app allows users to manage their contacts easily with features like syncing mobile contacts, adding contacts manually, uploading profile photos, and clearing all contacts.
 
+[Click to preview App with Expo go](https://shorturl.at/IN1Dm), Or
+
+
 ## Scan QR code
 
 ![Scan QR code](assets/images/qr-code.png)

@@ -4,9 +4,12 @@ import { useImagePicker } from '../../hooks/useImagePicker';
 
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn(),
+  launchCameraAsync: jest.fn(),
   MediaTypeOptions: {
     Images: 'Images',
   },
+  requestMediaLibraryPermissionsAsync: jest.fn(),
+  requestCameraPermissionsAsync: jest.fn(),
 }));
 
 describe('useImagePicker hook', () => {
@@ -22,6 +25,8 @@ describe('useImagePicker hook', () => {
   });
 
   it('should allow picking an image from the library', async () => {
+    // Mock permission granted and image picker result
+    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
     const mockResult = {
       canceled: false,
       assets: [{ uri: 'https://example.com/new-photo.jpg' }],
@@ -32,9 +37,10 @@ describe('useImagePicker hook', () => {
     const { result } = renderHook(() => useImagePicker());
 
     await act(async () => {
-      await result.current.pickImage();
+      await result.current.pickImageFromLibrary();
     });
 
+    expect(ImagePicker.requestMediaLibraryPermissionsAsync).toHaveBeenCalled();
     expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledWith({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -44,7 +50,33 @@ describe('useImagePicker hook', () => {
     expect(result.current.photo).toBe('https://example.com/new-photo.jpg');
   });
 
+  it('should allow taking a photo with the camera', async () => {
+    // Mock permission granted and camera result
+    (ImagePicker.requestCameraPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+    const mockResult = {
+      canceled: false,
+      assets: [{ uri: 'https://example.com/camera-photo.jpg' }],
+    };
+
+    (ImagePicker.launchCameraAsync as jest.Mock).mockResolvedValue(mockResult);
+
+    const { result } = renderHook(() => useImagePicker());
+
+    await act(async () => {
+      await result.current.takePhotoWithCamera();
+    });
+
+    expect(ImagePicker.requestCameraPermissionsAsync).toHaveBeenCalled();
+    expect(ImagePicker.launchCameraAsync).toHaveBeenCalledWith({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    expect(result.current.photo).toBe('https://example.com/camera-photo.jpg');
+  });
+
   it('should not change photo if image picking is canceled', async () => {
+    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
     const mockResult = { canceled: true };
 
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue(mockResult);
@@ -52,7 +84,7 @@ describe('useImagePicker hook', () => {
     const { result } = renderHook(() => useImagePicker());
 
     await act(async () => {
-      await result.current.pickImage();
+      await result.current.pickImageFromLibrary();
     });
 
     expect(result.current.photo).toBeNull();

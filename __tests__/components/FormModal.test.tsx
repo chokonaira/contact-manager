@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, ActionSheetIOS } from 'react-native';
 import ContactFormModal from '@/components/FormModal';
 import { Contact } from '@/hooks/useFormValidation';
 
@@ -11,10 +11,21 @@ jest.mock('react-native', () => {
       Alert: {
         alert: jest.fn(),
       },
+      ActionSheetIOS: {
+        showActionSheetWithOptions: jest.fn(),
+      },
     },
     RN
   );
 });
+
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn(),
+  launchCameraAsync: jest.fn(),
+  MediaTypeOptions: {
+    Images: 'Images',
+  },
+}));
 
 describe('ContactFormModal Component', () => {
   const onCloseMock = jest.fn();
@@ -134,4 +145,27 @@ describe('ContactFormModal Component', () => {
     fireEvent.press(getByTestId('cancel-icon'));
     expect(onCloseMock).toHaveBeenCalled();
   });
+
+  it('shows the ActionSheet when the profile image is clicked', () => {
+    const { getByTestId } = render(
+      <ContactFormModal
+        isVisible={true}
+        onClose={onCloseMock}
+        onSubmit={onSubmitMock}
+        contact={mockContact}
+        isEditing={true}
+      />
+    );
+  
+    fireEvent.press(getByTestId('profile-image'));
+  
+    expect(ActionSheetIOS.showActionSheetWithOptions).toHaveBeenCalledWith(
+      {
+        options: ['Cancel', 'Take Photo', 'Choose from Library'],
+        cancelButtonIndex: 0,
+      },
+      expect.any(Function)
+    );
+  });
+  
 });

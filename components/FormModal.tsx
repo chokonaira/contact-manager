@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Modal, Image, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Modal, Image, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, TouchableOpacity, ActionSheetIOS, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Input from './Input';
 import Button from './Button';
@@ -37,11 +37,23 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     resetForm,
   } = useFormValidation(contact, isEditing);
 
-  const { photo, pickImage, resetImage, setInitialPhoto } = useImagePicker(contact?.photo || undefined);
+  const {
+    photo,
+    pickImageFromLibrary,
+    takePhotoWithCamera,
+    resetImage,
+    setInitialPhoto
+  } = useImagePicker(contact?.photo || null);
 
   useEffect(() => {
-    setInitialPhoto(contact?.photo || null);
-  }, [contact]);
+    if (!isEditing && isVisible) {
+      resetForm();
+      setInitialPhoto(null); 
+    } else if (isEditing && contact) {
+      setInitialPhoto(contact.photo || null);
+    }
+  }, [isEditing, isVisible, contact]);
+  
 
   const handleDelete = () => {
     Alert.alert(
@@ -75,67 +87,107 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }, onClose);
   };
 
+  const showImagePickerOptions = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Take Photo', 'Choose from Library'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            takePhotoWithCamera();
+          } else if (buttonIndex === 2) {
+            pickImageFromLibrary();
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        'Select Option',
+        'Choose a photo option:',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Take Photo',
+            onPress: takePhotoWithCamera,
+          },
+          {
+            text: 'Choose from Library',
+            onPress: pickImageFromLibrary,
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
   return (
     <Modal visible={isVisible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          {isEditing && (
-            <TouchableOpacity testID="delete-icon-top-left" onPress={handleDelete} style={styles.deleteIconTopLeft}>
-              <Ionicons name="trash-outline" size={24} color="gray" />
-            </TouchableOpacity>
-          )}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {isEditing && (
+              <TouchableOpacity testID="delete-icon-top-left" onPress={handleDelete} style={styles.deleteIconTopLeft}>
+                <Ionicons name="trash-outline" size={24} color="gray" />
+              </TouchableOpacity>
+            )}
 
-          <TouchableOpacity testID="cancel-icon" onPress={onClose} style={styles.cancelIcon}>
-            <Ionicons name="close-circle-outline" size={30} color="gray" />
-          </TouchableOpacity>
-
-          <View style={styles.imageContainer}>
-            <TouchableOpacity onPress={pickImage} style={styles.imageTouchable}>
-              <Image
-                source={photo ? { uri: photo } : require('@/assets/images/defaultThumbnail.jpg')}
-                style={styles.profileImage}
-                resizeMode="cover"
-              />
+            <TouchableOpacity testID="cancel-icon" onPress={onClose} style={styles.cancelIcon}>
+              <Ionicons name="close-circle-outline" size={30} color="gray" />
             </TouchableOpacity>
+
+            <View style={styles.imageContainer}>
+              <TouchableOpacity testID="profile-image" onPress={showImagePickerOptions} style={styles.imageTouchable}>
+                <Image
+                  source={photo ? { uri: photo } : require('@/assets/images/defaultThumbnail.jpg')}
+                  style={styles.profileImage}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {photo && (
+              <TouchableOpacity onPress={resetImage} style={styles.deleteIcon}>
+                <Ionicons name="trash-outline" size={18} color="gray" />
+              </TouchableOpacity>
+            )}
+
+            <Input
+              placeholder="Name"
+              value={name}
+              onChangeText={handleNameChange}
+              autoCapitalize="words"
+              errorMessage={nameError}
+            />
+
+            <Input
+              placeholder="Phone"
+              value={phone}
+              onChangeText={handlePhoneChange}
+              keyboardType="phone-pad"
+            />
+
+            <Input
+              placeholder="Email"
+              value={email}
+              onChangeText={handleEmailChange}
+              keyboardType="email-address"
+              errorMessage={emailError}
+            />
+
+            <Button
+              onPress={handleSaveContact}
+              title={isEditing ? 'Save' : 'Add'}
+              isLoading={isLoading}
+              style={styles.smallSubmitButton}
+            />
           </View>
-
-          {photo && (
-            <TouchableOpacity onPress={resetImage} style={styles.deleteIcon}>
-              <Ionicons name="trash-outline" size={18} color="gray" />
-            </TouchableOpacity>
-          )}
-
-          <Input
-            placeholder="Name"
-            value={name}
-            onChangeText={handleNameChange}
-            autoCapitalize="words"
-            errorMessage={nameError}
-          />
-
-          <Input
-            placeholder="Phone"
-            value={phone}
-            onChangeText={handlePhoneChange}
-            keyboardType="phone-pad"
-          />
-
-          <Input
-            placeholder="Email"
-            value={email}
-            onChangeText={handleEmailChange}
-            keyboardType="email-address"
-            errorMessage={emailError}
-          />
-
-          <Button
-            onPress={handleSaveContact}
-            title={isEditing ? 'Save' : 'Add'}
-            isLoading={isLoading}
-            style={styles.smallSubmitButton}
-          />
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

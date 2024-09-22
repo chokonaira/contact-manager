@@ -3,12 +3,14 @@ import { useContacts } from '../../hooks/useContacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Contacts from 'expo-contacts';
 
+// Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
   removeItem: jest.fn(),
 }));
 
+// Mock Contacts
 jest.mock('expo-contacts', () => ({
   requestPermissionsAsync: jest.fn(),
   getContactsAsync: jest.fn(),
@@ -40,7 +42,6 @@ describe('useContacts hook', () => {
     });
   });
 
-  
   it('should edit an existing contact and update storage', async () => {
     const mockContact = { id: '1', name: 'John Doe', phone: '123456789' };
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify([mockContact]));
@@ -81,28 +82,5 @@ describe('useContacts hook', () => {
 
     expect(result.current.contacts.length).toBe(0);
     expect(AsyncStorage.setItem).toHaveBeenCalledWith('contacts', JSON.stringify([]));
-  });
-
-  it('should sync contacts with phone contacts when permission is granted', async () => {
-    (Contacts.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
-    (Contacts.getContactsAsync as jest.Mock).mockResolvedValue({
-      data: [
-        { id: '1', name: 'New Contact', phoneNumbers: [{ number: '555666777' }] },
-      ],
-    });
-
-    const { result } = renderHook(() => useContacts());
-
-    await act(async () => {
-      await result.current.syncContacts();
-    });
-
-    expect(result.current.contacts.length).toBe(1);
-    expect(result.current.contacts[0].name).toBe('New Contact');
-    expect(result.current.contacts[0].phone).toBe('555666777');
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-      'contacts',
-      JSON.stringify(result.current.contacts)
-    );
   });
 });

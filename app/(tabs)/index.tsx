@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   ActivityIndicator,
   TextInput,
+  TouchableWithoutFeedback,
+  Keyboard
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import FormModal from '@/components/FormModal';
@@ -41,7 +43,6 @@ export default function HomeScreen() {
     const index = addContact(contact);
     if (index !== -1) {
       setIsModalVisible(false);
-      scrollToContact(index);
     } else {
       Alert.alert('Duplicate Contact', 'A contact with this phone number already exists.');
     }
@@ -106,96 +107,100 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.header}>
-        <Ionicons
-          name="ellipsis-horizontal"
-          size={32}
-          color="gray"
-          onPress={() => setIsMenuVisible(true)}
-          style={styles.headerIcon}
-          testID="menu-icon"
-        />
-        <Text testID="header-title" style={styles.headerTitle}>
-        {contacts.length > 0 ? `${contacts.length} Contact${contacts.length === 1 ? '' : 's'}` : 'No Contacts'}
-        </Text>
-        <MaterialIcons
-          name="add"
-          size={32}
-          color="gray"
-          onPress={() => {
-            setSelectedContact(undefined);
-            setIsModalVisible(true);
-          }}
-          style={styles.headerIcon}
-          testID="add-icon"
-        />
-      </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 
-      {contacts.length > 0 && (
-        <View style={styles.searchContainer} testID="search-container">
-          <TextInput
-            placeholder="Search Contacts"
-            placeholderTextColor="gray"
-            value={searchQuery}
-            onChangeText={handleSearchChange}
-            style={styles.searchInput}
-            editable={contacts.length > 0}
-            testID="search-input"
+      <SafeAreaView style={styles.safeContainer}>
+        <View style={styles.header}>
+          <Ionicons
+            name="ellipsis-horizontal"
+            size={32}
+            color="gray"
+            onPress={() => setIsMenuVisible(true)}
+            style={styles.headerIcon}
+            testID="menu-icon"
           />
-          <TouchableOpacity
-            style={styles.cancelSearchButton}
-            onPress={handleCancelSearch}
-            disabled={!searchQuery}
-            testID="cancel-search-button"
-          >
-            <Text style={styles.cancelSearchText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <ContactList
-        contacts={filteredContacts}
-        onPress={(contact) => {
-          setSelectedContact(contact);
-          setIsModalVisible(true);
-        }}
-        highlightedContactId={highlightedContactId}
-        ref={flatListRef}
-        ListEmptyComponent={
-          <EmptyList
-            onSyncContacts={handleSyncContacts}
-            onAddContact={() => {
+          <Text testID="header-title" style={styles.headerTitle}>
+            {contacts.length > 0 ? `${contacts.length} Contact${contacts.length === 1 ? '' : 's'}` : 'No Contacts'}
+          </Text>
+          <MaterialIcons
+            name="add"
+            size={32}
+            color="gray"
+            onPress={() => {
               setSelectedContact(undefined);
               setIsModalVisible(true);
             }}
+            style={styles.headerIcon}
+            testID="add-icon"
           />
-        }
-        contentContainerStyle={
-          filteredContacts.length === 0 ? styles.emptyContent : styles.listContent
-        }
-        testID="contact-list"
-      />
+        </View>
 
-      <MenuModal
-        visible={isMenuVisible}
-        onClose={() => setIsMenuVisible(false)}
-        onSyncContacts={handleSyncContacts}
-        onDeleteAllContacts={handleDeleteAllContacts}
-        hasContacts={contacts.length > 0}
-        testID="menu-modal"
-      />
+        {contacts.length > 0 && (
+          <View style={styles.searchContainer} testID="search-container">
+            <TextInput
+              placeholder="Search Contacts"
+              placeholderTextColor="gray"
+              value={searchQuery}
+              onChangeText={handleSearchChange}
+              style={styles.searchInput}
+              editable={contacts.length > 0}
+              testID="search-input"
+            />
+            <TouchableOpacity
+              style={styles.cancelSearchButton}
+              onPress={handleCancelSearch}
+              disabled={!searchQuery}
+              testID="cancel-search-button"
+            >
+              <Text style={styles.cancelSearchText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      <FormModal
-        isVisible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onSubmit={selectedContact ? handleEditContactSubmit : handleAddContact}
-        contact={selectedContact}
-        isEditing={!!selectedContact}
-        onDelete={() => selectedContact && onDeleteContact(selectedContact.id)}
-        testID="form-modal"
-      />
-    </SafeAreaView>
+        <ContactList
+          contacts={filteredContacts}
+          onPress={(contact) => {
+            setSelectedContact(contact);
+            setIsModalVisible(true);
+          }}
+          highlightedContactId={highlightedContactId}
+          ref={flatListRef}
+          ListEmptyComponent={
+            <EmptyList
+              onSyncContacts={handleSyncContacts}
+              onAddContact={() => {
+                setSelectedContact(undefined);
+                setIsModalVisible(true);
+              }}
+            />
+          }
+          contentContainerStyle={
+            filteredContacts.length === 0 ? styles.emptyContent : styles.listContent
+          }
+          testID="contact-list"
+        />
+
+        <MenuModal
+          visible={isMenuVisible}
+          onClose={() => setIsMenuVisible(false)}
+          onSyncContacts={handleSyncContacts}
+          onDeleteAllContacts={handleDeleteAllContacts}
+          hasContacts={contacts.length > 0}
+          testID="menu-modal"
+        />
+
+        <FormModal
+          isVisible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onSubmit={selectedContact ? handleEditContactSubmit : handleAddContact}
+          contact={selectedContact}
+          isEditing={!!selectedContact}
+          onDelete={() => selectedContact && onDeleteContact(selectedContact.id)}
+          testID="form-modal"
+        />
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
+
   );
 }
 
